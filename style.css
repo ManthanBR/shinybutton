@@ -5,35 +5,64 @@ body {
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #222;
+    background-color: #1a1a1a; /* Darker background to make holo pop */
     font-family: Arial, sans-serif;
     color: #eee;
     overflow: hidden;
 }
 
 .shiny-button {
-    padding: 20px 40px;
-    font-size: 24px;
+    padding: 20px 45px;
+    font-size: 26px;
     font-weight: bold;
     color: white;
-    background-color: #007bff; /* Base color */
-    border: none;
-    border-radius: 10px;
+    background-color: #333; /* Base color of the button, shine will be on top */
+    border: none; /* We'll create a pseudo-border */
+    border-radius: 12px; /* A bit more rounded for holo */
     cursor: pointer;
     position: relative;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden; /* Important for clipping pseudo-elements */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
     transition: transform 0.1s ease-out;
+    z-index: 1; /* Ensure button content is above the ::after border */
 
-    /* CSS variable for X position of shine's background, default to center */
-    /* This will be the value for background-position-x directly */
+    /* CSS variable for X position of shine's background */
     --shine-bg-pos-x: 50%;
+    --border-thickness: 4px; /* Control border thickness */
+    --border-radius: 12px; /* Match button's border-radius */
 }
 
 .shiny-button:active {
     transform: scale(0.97);
 }
 
+/* Holographic Gradient Definition (reused for both shines) */
+@property --gradient-angle { /* For potential future animation */
+  syntax: '<angle>';
+  initial-value: 90deg;
+  inherits: false;
+}
+
+.holographic-gradient {
+    background-image: linear-gradient(
+        var(--gradient-angle, 90deg),
+        hsl(0, 90%, 65%),   /* Red */
+        hsl(30, 90%, 65%),  /* Orange */
+        hsl(60, 90%, 65%),  /* Yellow */
+        hsl(120, 90%, 65%), /* Green */
+        hsl(180, 90%, 65%), /* Cyan */
+        hsl(240, 90%, 65%), /* Blue */
+        hsl(270, 90%, 65%), /* Purple */
+        hsl(300, 90%, 65%), /* Magenta */
+        hsl(330, 90%, 65%), /* Pink */
+        hsl(360, 90%, 65%)  /* Red (to loop) */
+    );
+    background-size: 300% 100%; /* Make gradient much wider for sweeping effect */
+    background-position: var(--shine-bg-pos-x) 50%;
+}
+
+
+/* MAIN SURFACE SHINE */
 .shiny-button::before {
     content: "";
     position: absolute;
@@ -41,41 +70,76 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 1; /* On top of button's base background, below text */
 
-    /* HORIZONTAL SHINE / GLINT */
+    /* Apply the holographic gradient class/properties */
+    background-image: inherit; /* Inherits from .holographic-gradient if we were to add it as a class */
+                               /* For direct application: */
     background-image: linear-gradient(
         90deg, /* Gradient direction: left to right */
-        transparent 30%,
-        rgba(255, 255, 255, 0.15) 40%,
-        rgba(255, 255, 255, 0.5) 48%, /* Brighter part of shine */
-        rgba(255, 255, 255, 0.6) 50%, /* Center of shine */
-        rgba(255, 255, 255, 0.5) 52%, /* Brighter part of shine */
-        rgba(255, 255, 255, 0.15) 60%,
-        transparent 70%
+        hsla(0, 90%, 70%, 0.7),
+        hsla(45, 90%, 70%, 0.7),
+        hsla(90, 90%, 70%, 0.7),
+        hsla(135, 90%, 70%, 0.7),
+        hsla(180, 90%, 70%, 0.7),
+        hsla(225, 90%, 70%, 0.7),
+        hsla(270, 90%, 70%, 0.7),
+        hsla(315, 90%, 70%, 0.7),
+        hsla(360, 90%, 70%, 0.7)
     );
-    background-size: 250% 100%; /* Make gradient wider than button (e.g., 200%-300%) */
-                                /* This allows the shine (at 50% of gradient) to move across */
-
-    /*
-      --shine-bg-pos-x is set by JS.
-      If it's 0%, the gradient's 0% point is at button's 0% point. Shine appears on right.
-      If it's 100%, the gradient's 100% point is at button's 100% point. Shine appears on left.
-      The vertical position is fixed at 50% (center).
-    */
+    background-size: 350% 100%; /* Wider for more color sweep */
     background-position: var(--shine-bg-pos-x) 50%;
 
-    opacity: 0.9; /* Adjust opacity of the shine */
+    opacity: 0.6; /* Adjust opacity of the main surface shine */
+    mix-blend-mode: color-dodge; /* Try screen, overlay, color-dodge, lighten */
     transition: background-position 0.05s linear, opacity 0.2s;
     pointer-events: none;
-    mix-blend-mode: screen; /* screen, overlay, or color-dodge often look good */
+    border-radius: inherit; /* Match button's radius */
 }
+
+/* SHINY BORDER */
+.shiny-button::after {
+    content: "";
+    position: absolute;
+    /* Position it to be slightly larger than the button by --border-thickness */
+    top: calc(var(--border-thickness) * -1);
+    left: calc(var(--border-thickness) * -1);
+    width: calc(100% + var(--border-thickness) * 2);
+    height: calc(100% + var(--border-thickness) * 2);
+    z-index: -1; /* Behind the button's main content and ::before */
+
+    /* Apply the holographic gradient */
+    background-image: linear-gradient( /* Slightly different or more intense for border */
+        90deg,
+        hsl(0, 100%, 55%),
+        hsl(30, 100%, 55%),
+        hsl(60, 100%, 55%),
+        hsl(120, 100%, 55%),
+        hsl(180, 100%, 55%),
+        hsl(240, 100%, 55%),
+        hsl(270, 100%, 55%),
+        hsl(300, 100%, 55%),
+        hsl(360, 100%, 55%)
+    );
+    background-size: 300% 100%;
+    background-position: var(--shine-bg-pos-x) 50%;
+
+    border-radius: calc(var(--border-radius) + var(--border-thickness)); /* Outer radius */
+    opacity: 1;
+    transition: background-position 0.05s linear;
+    pointer-events: none;
+    /* The button's own background-color will obscure the center of this ::after,
+       effectively making it look like a border. */
+}
+
 
 .debug-info {
     margin-top: 30px;
     padding: 15px;
-    background-color: rgba(0,0,0,0.2);
+    background-color: rgba(50,50,50,0.5);
     border-radius: 5px;
     font-size: 14px;
+    color: #ccc;
 }
 .debug-info p {
     margin: 5px 0;
