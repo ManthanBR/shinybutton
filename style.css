@@ -5,142 +5,123 @@ body {
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #1a1a1a; /* Darker background to make holo pop */
-    font-family: Arial, sans-serif;
-    color: #eee;
+    background-color: #1c1c1e; /* Darker, slightly cool background */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #f0f0f0;
     overflow: hidden;
+    perspective: 1000px; /* Essential for 3D transform on children */
+}
+
+.button-container {
+    /* This container can also have perspective if needed,
+       but body having it is often enough for a single element. */
 }
 
 .shiny-button {
-    padding: 20px 45px;
-    font-size: 26px;
-    font-weight: bold;
+    padding: 22px 50px;
+    font-size: 28px;
+    font-weight: 600;
     color: white;
-    background-color: #333; /* Base color of the button, shine will be on top */
-    border: none; /* We'll create a pseudo-border */
-    border-radius: 12px; /* A bit more rounded for holo */
+    /* Opaque button background is KEY for the ::after border to work */
+    background-color: #28282D; /* Base color of the button, can be dark */
+    border: none;
+    border-radius: 15px;
     cursor: pointer;
-    position: relative;
-    overflow: hidden; /* Important for clipping pseudo-elements */
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-    transition: transform 0.1s ease-out;
-    z-index: 1; /* Ensure button content is above the ::after border */
+    position: relative; /* For pseudo-elements and z-indexing */
+    overflow: visible; /* Allow box-shadow to be fully visible, ::before/::after will be clipped by their own radius */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4),
+                0 0 0px 2px rgba(0,0,0,0.1); /* Subtle edge */
 
-    /* CSS variable for X position of shine's background */
+    /* CSS variables for dynamic control */
     --shine-bg-pos-x: 50%;
-    --border-thickness: 4px; /* Control border thickness */
-    --border-radius: 12px; /* Match button's border-radius */
+    --shine-bg-pos-y: 50%;
+    --button-rotate-x: 0deg;
+    --button-rotate-y: 0deg;
+    --border-thickness: 4px;
+    --button-border-radius: 15px; /* Match button's border-radius */
+
+    transform-style: preserve-3d; /* Allows children to be transformed in 3D space */
+    transform: rotateX(var(--button-rotate-x)) rotateY(var(--button-rotate-y));
+    transition: transform 0.05s linear, box-shadow 0.2s;
+    z-index: 1; /* Ensure button content is above the ::after border */
+    text-shadow: 0 0 10px rgba(255,200,255,0.3);
 }
 
 .shiny-button:active {
-    transform: scale(0.97);
+    transform: rotateX(var(--button-rotate-x)) rotateY(var(--button-rotate-y)) scale(0.96);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
 
-/* Holographic Gradient Definition (reused for both shines) */
-@property --gradient-angle { /* For potential future animation */
-  syntax: '<angle>';
-  initial-value: 90deg;
-  inherits: false;
-}
-
-.holographic-gradient {
-    background-image: linear-gradient(
-        var(--gradient-angle, 90deg),
-        hsl(0, 90%, 65%),   /* Red */
-        hsl(30, 90%, 65%),  /* Orange */
-        hsl(60, 90%, 65%),  /* Yellow */
-        hsl(120, 90%, 65%), /* Green */
-        hsl(180, 90%, 65%), /* Cyan */
-        hsl(240, 90%, 65%), /* Blue */
-        hsl(270, 90%, 65%), /* Purple */
-        hsl(300, 90%, 65%), /* Magenta */
-        hsl(330, 90%, 65%), /* Pink */
-        hsl(360, 90%, 65%)  /* Red (to loop) */
-    );
-    background-size: 300% 100%; /* Make gradient much wider for sweeping effect */
-    background-position: var(--shine-bg-pos-x) 50%;
-}
-
-
-/* MAIN SURFACE SHINE */
-.shiny-button::before {
+/* Common properties for both shines */
+.shiny-button::before,
+.shiny-button::after {
     content: "";
     position: absolute;
+    pointer-events: none;
+    transition: background-position 0.05s linear, opacity 0.2s;
+    background-size: 350% 350%; /* Larger for 2D movement */
+    background-position: var(--shine-bg-pos-x) var(--shine-bg-pos-y);
+}
+
+/* SURFACE SHINE (::before) */
+.shiny-button::before {
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1; /* On top of button's base background, below text */
-
-    /* Apply the holographic gradient class/properties */
-    background-image: inherit; /* Inherits from .holographic-gradient if we were to add it as a class */
-                               /* For direct application: */
+    border-radius: var(--button-border-radius); /* Match button */
     background-image: linear-gradient(
-        90deg, /* Gradient direction: left to right */
-        hsla(0, 90%, 70%, 0.7),
-        hsla(45, 90%, 70%, 0.7),
-        hsla(90, 90%, 70%, 0.7),
-        hsla(135, 90%, 70%, 0.7),
-        hsla(180, 90%, 70%, 0.7),
-        hsla(225, 90%, 70%, 0.7),
-        hsla(270, 90%, 70%, 0.7),
-        hsla(315, 90%, 70%, 0.7),
-        hsla(360, 90%, 70%, 0.7)
+        135deg, /* Diagonal gradient looks more dynamic */
+        hsla(280, 80%, 70%, 0.4), /* Purple */
+        hsla(320, 85%, 75%, 0.5), /* Pink */
+        hsla(0, 80%, 75%, 0.4),   /* Soft Red/Pink */
+        hsla(260, 90%, 70%, 0.5), /* Indigo */
+        hsla(300, 85%, 70%, 0.6), /* Magenta */
+        hsla(280, 80%, 70%, 0.4)  /* Loop Purple */
     );
-    background-size: 350% 100%; /* Wider for more color sweep */
-    background-position: var(--shine-bg-pos-x) 50%;
-
-    opacity: 0.6; /* Adjust opacity of the main surface shine */
-    mix-blend-mode: color-dodge; /* Try screen, overlay, color-dodge, lighten */
-    transition: background-position 0.05s linear, opacity 0.2s;
-    pointer-events: none;
-    border-radius: inherit; /* Match button's radius */
+    opacity: 0.7;
+    mix-blend-mode: color-dodge; /* screen, overlay, color-dodge, lighten */
+    z-index: 1; /* Above button's bg, below text (if button text has higher z-index) */
 }
 
-/* SHINY BORDER */
+/* SHINY BORDER (::after) */
 .shiny-button::after {
-    content: "";
-    position: absolute;
-    /* Position it to be slightly larger than the button by --border-thickness */
     top: calc(var(--border-thickness) * -1);
     left: calc(var(--border-thickness) * -1);
     width: calc(100% + var(--border-thickness) * 2);
     height: calc(100% + var(--border-thickness) * 2);
-    z-index: -1; /* Behind the button's main content and ::before */
+    /* Outer radius must accommodate the border thickness */
+    border-radius: calc(var(--button-border-radius) + var(--border-thickness));
 
-    /* Apply the holographic gradient */
-    background-image: linear-gradient( /* Slightly different or more intense for border */
-        90deg,
-        hsl(0, 100%, 55%),
-        hsl(30, 100%, 55%),
-        hsl(60, 100%, 55%),
-        hsl(120, 100%, 55%),
-        hsl(180, 100%, 55%),
-        hsl(240, 100%, 55%),
-        hsl(270, 100%, 55%),
-        hsl(300, 100%, 55%),
-        hsl(360, 100%, 55%)
+    background-image: linear-gradient(
+        135deg,
+        hsl(290, 100%, 60%), /* Vivid Purple */
+        hsl(330, 100%, 65%), /* Hot Pink */
+        hsl(270, 100%, 65%), /* Indigo/Violet */
+        hsl(310, 100%, 60%), /* Deep Magenta */
+        hsl(290, 100%, 60%)  /* Loop Purple */
     );
-    background-size: 300% 100%;
-    background-position: var(--shine-bg-pos-x) 50%;
-
-    border-radius: calc(var(--border-radius) + var(--border-thickness)); /* Outer radius */
     opacity: 1;
-    transition: background-position 0.05s linear;
-    pointer-events: none;
-    /* The button's own background-color will obscure the center of this ::after,
-       effectively making it look like a border. */
+    z-index: -1; /* CRUCIAL: Behind the button's main background */
+                  /* The button's `background-color` will cover the center of this ::after */
 }
-
 
 .debug-info {
-    margin-top: 30px;
-    padding: 15px;
-    background-color: rgba(50,50,50,0.5);
-    border-radius: 5px;
-    font-size: 14px;
-    color: #ccc;
+    margin-top: 40px;
+    padding: 15px 20px;
+    background-color: rgba(40, 40, 45, 0.8);
+    border-radius: 8px;
+    font-size: 13px;
+    color: #b0b0b0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    width: 280px;
+    text-align: left;
 }
 .debug-info p {
-    margin: 5px 0;
+    margin: 6px 0;
+    white-space: nowrap;
+}
+.debug-info span {
+    color: #e0e0e0;
+    font-weight: bold;
 }

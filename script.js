@@ -1,122 +1,123 @@
 document.addEventListener('DOMContentLoaded', () => {
     const button = document.getElementById('shinyButton');
-    // const alphaValSpan = document.getElementById('alphaVal'); // Removed alpha/beta for this example
-    // const betaValSpan = document.getElementById('betaVal');
     const gammaValSpan = document.getElementById('gammaVal');
-    // const targetShineXValSpan = document.getElementById('targetShineXVal'); // Simplified debug
-    const cssBgPosXValSpan = document.getElementById('cssBgPosXVal');
+    const betaValSpan = document.getElementById('betaVal');
+    const shineXValSpan = document.getElementById('shineXVal');
+    const shineYValSpan = document.getElementById('shineYVal');
+    const rotateXValSpan = document.getElementById('rotateXVal');
+    const rotateYValSpan = document.getElementById('rotateYVal');
 
     if (!button) {
         console.error("Shiny button not found!");
         return;
     }
 
-    let bgSizeXFactorBefore = 3.5; // Default for ::before (350%)
-    let bgSizeXFactorAfter = 3.0;  // Default for ::after (300%)
+    // --- Configuration ---
+    const MAX_BUTTON_ROTATION = 8; // Max degrees for 3D tilt
+    const SHINE_SENSITIVITY_RANGE = 90; // Degrees of device tilt for full shine travel (e.g., -45 to +45)
+    const GRADIENT_SIZE_FACTOR = 3.5; // Matches background-size: 350%
+    const SHINE_CENTER_IN_GRADIENT = 0.5; // Assume shine is in the middle of the gradient definition
 
-    // Attempt to read from CSS, not strictly necessary if defaults are fine
-    // but good practice if you want CSS to be the single source of truth for sizes.
-    try {
-        const btnComputedStyleBefore = window.getComputedStyle(button, '::before');
-        const bgSizeBefore = btnComputedStyleBefore.getPropertyValue('background-size').split(' ')[0];
-        if (bgSizeBefore.includes('%')) {
-            const parsedFactor = parseFloat(bgSizeBefore) / 100;
-            if (!isNaN(parsedFactor) && parsedFactor > 0) bgSizeXFactorBefore = parsedFactor;
+    function calculateCssBackgroundPos(deviceTiltPercent) {
+        // s: target shine position on button, normalized (0 to 1)
+        const s = deviceTiltPercent / 100;
+        let cssBgPosPercent;
+        if (GRADIENT_SIZE_FACTOR <= 1) {
+            cssBgPosPercent = s * 100;
+        } else {
+            // Formula: css_val = (s - shine_center_in_gradient * bg_factor) / (1 - bg_factor)
+            cssBgPosPercent = ((s - SHINE_CENTER_IN_GRADIENT * GRADIENT_SIZE_FACTOR) / (1 - GRADIENT_SIZE_FACTOR)) * 100;
         }
-
-        const btnComputedStyleAfter = window.getComputedStyle(button, '::after');
-        const bgSizeAfter = btnComputedStyleAfter.getPropertyValue('background-size').split(' ')[0];
-        if (bgSizeAfter.includes('%')) {
-            const parsedFactor = parseFloat(bgSizeAfter) / 100;
-            if (!isNaN(parsedFactor) && parsedFactor > 0) bgSizeXFactorAfter = parsedFactor;
-        }
-        // console.log("Using bgSize factors Before/After:", bgSizeXFactorBefore, bgSizeXFactorAfter);
-    } catch (e) {
-        // console.warn("Could not compute ::before/::after styles for background-size, using defaults.");
+        // Clamp to prevent extreme values if logic or factors are off
+        return Math.max(-250, Math.min(250, cssBgPosPercent));
     }
 
-
     function handleOrientation(event) {
-        let { gamma } = event; // We only need gamma for horizontal shine
+        let { beta, gamma } = event; // alpha (compass) not used
 
-        if (gamma === null) {
-            if (gammaValSpan) gammaValSpan.textContent = 'N/A';
-            if (cssBgPosXValSpan) cssBgPosXValSpan.textContent = 'N/A';
+        if (beta === null || gamma === null) {
+            gammaValSpan.textContent = betaValSpan.textContent = 'N/A';
+            shineXValSpan.textContent = shineYValSpan.textContent = 'N/A';
+            rotateXValSpan.textContent = rotateYValSpan.textContent = 'N/A';
             return;
         }
-        
-        if (gammaValSpan) gammaValSpan.textContent = gamma.toFixed(1);
 
-        // --- Map GAMMA (left/right tilt) to where shine should appear on button ---
-        const gammaRange = 90; // Effective range: -45 to +45 degrees
-        let targetShineXPercent = (Math.max(-gammaRange / 2, Math.min(gammaRange / 2, gamma)) + (gammaRange / 2)) / gammaRange * 100;
+        // --- Update Debug Info ---
+        gammaValSpan.textContent = gamma.toFixed(1);
+        betaValSpan.textContent = beta.toFixed(1);
 
-        // --- Calculate CSS background-position-x ---
-        // This calculation needs to be done for each pseudo-element if their bgSizeXFactor differs
-        // or if we wanted them to move differently. For now, we use one common target.
-        // Let's assume for simplicity the "targetShineXPercent" aims for the center of the shine
-        // on the button, and both pseudo-elements use a variation of the formula.
-        // For simplicity, we'll use one cssBgPosXPercent for both, derived from an average/representative factor.
-        // A more precise approach would calculate two separate values if factors are very different.
+        // --- 1. Calculate Shine Position (X and Y) ---
+        // GAMMA (left/right tilt) for X-axis of shine
+        const gammaClamped = Math.max(-SHINE_SENSITIVITY_RANGE / 2, Math.min(SHINE_SENSITIVITY_RANGE / 2, gamma));
+        const shineTargetXPercent = (gammaClamped + SHINE_SENSITIVITY_RANGE / 2) / SHINE_SENSITIVITY_RANGE * 100;
 
-        const s = targetShineXPercent / 100;
-        const shineCenterInGradient = 0.5; // Shine is in middle of gradient definition
+        // BETA (front/back tilt) for Y-axis of shine
+        const betaClamped = Math.max(-SHINE_SENSITIVITY_RANGE / 2, Math.min(SHINE_SENSITIVITY_RANGE / 2, beta));
+        const shineTargetYPercent = (betaClamped + SHINE_SENSITIVITY_RANGE / 2) / SHINE_SENSITIVITY_RANGE * 100;
+        // Optional: Invert Y if natural tilt feels opposite: const shineTargetYPercent = 100 - (...);
 
-        // Using an average factor for simplicity in setting one CSS variable.
-        // If precision is paramount, set two different CSS vars for ::before and ::after bg-pos.
-        const avgBgSizeXFactor = (bgSizeXFactorBefore + bgSizeXFactorAfter) / 2;
-        
-        let cssBgPosXPercent;
-        if (avgBgSizeXFactor <= 1) {
-             cssBgPosXPercent = s * 100;
-        } else {
-            cssBgPosXPercent = ((s - shineCenterInGradient * avgBgSizeXFactor) / (1 - avgBgSizeXFactor)) * 100;
-        }
-        cssBgPosXPercent = Math.max(-250, Math.min(250, cssBgPosXPercent)); // Clamp for sanity
+        const cssShinePosX = calculateCssBackgroundPos(shineTargetXPercent);
+        const cssShinePosY = calculateCssBackgroundPos(shineTargetYPercent);
 
-        button.style.setProperty('--shine-bg-pos-x', `${cssBgPosXPercent.toFixed(2)}%`);
+        button.style.setProperty('--shine-bg-pos-x', `${cssShinePosX.toFixed(2)}%`);
+        button.style.setProperty('--shine-bg-pos-y', `${cssShinePosY.toFixed(2)}%`);
+        shineXValSpan.textContent = cssShinePosX.toFixed(1);
+        shineYValSpan.textContent = cssShinePosY.toFixed(1);
 
-        if (cssBgPosXValSpan) cssBgPosXValSpan.textContent = cssBgPosXPercent.toFixed(1) + '%';
+        // --- 2. Calculate Button 3D Rotation ---
+        // Map gamma to Y-axis rotation, beta to X-axis rotation
+        // Normalize gamma/beta to -1 to 1 over a chosen range (e.g., -30 to 30 degrees)
+        const rotationRange = 60; // Consider -30 to +30 degrees for full rotation effect
+
+        let normGamma = Math.max(-rotationRange/2, Math.min(rotationRange/2, gamma)) / (rotationRange/2); // -1 to 1
+        let normBeta = Math.max(-rotationRange/2, Math.min(rotationRange/2, beta)) / (rotationRange/2);  // -1 to 1
+
+        // Apply max rotation. Invert if necessary for natural feel.
+        // Tilting phone top away (beta positive) might feel like button top rotates away (positive rotateX)
+        // Tilting phone right (gamma positive) might feel like button right rotates away (negative rotateY)
+        const rotateX = normBeta * MAX_BUTTON_ROTATION;
+        const rotateY = -normGamma * MAX_BUTTON_ROTATION; // Negative for more natural mapping
+
+        button.style.setProperty('--button-rotate-x', `${rotateX.toFixed(2)}deg`);
+        button.style.setProperty('--button-rotate-y', `${rotateY.toFixed(2)}deg`);
+        rotateXValSpan.textContent = rotateX.toFixed(1);
+        rotateYValSpan.textContent = rotateY.toFixed(1);
     }
 
     // --- Permission Handling for iOS 13+ ---
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        button.addEventListener('click', () => {
+        const initialButtonText = button.textContent;
+        button.textContent = "Enable Tilt FX"; // Prompt user
+
+        button.addEventListener('click', function requestPerms() {
             DeviceOrientationEvent.requestPermission()
                 .then(permissionState => {
                     if (permissionState === 'granted') {
                         window.addEventListener('deviceorientation', handleOrientation);
+                        button.textContent = initialButtonText; // Restore text
                         console.log("Device orientation permission granted.");
+                        // Remove this click listener if it was only for permission
+                        button.removeEventListener('click', requestPerms);
                     } else {
+                        button.textContent = "Tilt Denied";
                         console.warn('Device orientation permission not granted.');
-                        alert('Device orientation permission was not granted. The shine effect will not work.');
+                        alert('Device orientation permission was not granted. The effects will not work.');
                     }
                 })
                 .catch(error => {
+                    button.textContent = "Tilt Error";
                     console.error("Error requesting device orientation permission:", error);
                     alert('Could not request device orientation permission.');
                 });
-        }, { once: true });
-        // Make it clear to the user they need to click
-        const initialButtonText = button.textContent;
-        button.textContent = "Click to Enable Tilt!";
-        setTimeout(() => { // Revert text if they don't click quickly, or after permission granted
-            if(button.textContent === "Click to Enable Tilt!") button.textContent = initialButtonText;
-        }, 5000);
-         DeviceOrientationEvent.requestPermission().then(state => {
-            if (state === 'granted') {
-                 button.textContent = initialButtonText; // Revert immediately if already granted
-            }
         });
-
-
     } else if ('DeviceOrientationEvent' in window) {
         window.addEventListener('deviceorientation', handleOrientation);
         console.log("Device orientation supported directly.");
     } else {
-        console.warn('Device orientation not supported on this browser/device.');
-        alert('Device orientation is not supported on this browser/device. The shine effect will not work.');
-        button.textContent = "Tilt Not Supported";
+        button.textContent = "Tilt N/A";
         button.disabled = true;
+        console.warn('Device orientation not supported on this browser/device.');
+        alert('Device orientation is not supported. Effects will not work.');
+        gammaValSpan.textContent = betaValSpan.textContent = 'Unsupported';
     }
 });

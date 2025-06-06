@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holographic Shiny Button & Border</title>
+    <title>3D Holographic Button</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <button id="shinyButton" class="shiny-button">
-        Holographic Tilt!
-    </button>
+    <div class="button-container">
+        <button id="shinyButton" class="shiny-button">
+            Tilt Me!
+        </button>
+    </div>
+
     <div class="debug-info">
-        <p>Gamma (L/R Tilt): <span id="gammaVal">N/A</span></p>
-        <p>CSS BgPos X: <span id="cssBgPosXVal">N/A</span></p>
+        <p>Gamma (L/R): <span id="gammaVal">N/A</span>°</p>
+        <p>Beta (F/B): <span id="betaVal">N/A</span>°</p>
+        <p>Shine X: <span id="shineXVal">N/A</span>% | Shine Y: <span id="shineYVal">N/A</span>%</p>
+        <p>RotateX: <span id="rotateXVal">N/A</span>° | RotateY: <span id="rotateYVal">N/A</span>°</p>
     </div>
     <script src="script.js"></script>
 </body>
