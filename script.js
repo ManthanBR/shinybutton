@@ -3,23 +3,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const alphaValSpan = document.getElementById('alphaVal');
     const betaValSpan = document.getElementById('betaVal');
     const gammaValSpan = document.getElementById('gammaVal');
-    const shineXValSpan = document.getElementById('shineXVal');
-    const shineYValSpan = document.getElementById('shineYVal');
+    const targetShineXValSpan = document.getElementById('targetShineXVal');
+    const cssBgPosXValSpan = document.getElementById('cssBgPosXVal');
 
     if (!button) {
         console.error("Shiny button not found!");
         return;
     }
 
-    function handleOrientation(event) {
-        // beta: front-back tilt (-180 to 180, typically -90 to 90 usable)
-        // gamma: left-right tilt (-90 to 90)
-        // alpha: compass direction (0-360) - not used for this shine effect
+    // Get background-size-x from CSS to make the formula adaptive
+    // Default to 2.5 (250%) if not found or parsing fails
+    let bgSizeXFactor = 2.5;
+    try {
+        const btnComputedStyle = window.getComputedStyle(button, '::before');
+        const bgSize = btnComputedStyle.getPropertyValue('background-size');
+        const bgSizeParts = bgSize.split(' ');
+        if (bgSizeParts[0].includes('%')) {
+            const parsedFactor = parseFloat(bgSizeParts[0]) / 100;
+            if (!isNaN(parsedFactor) && parsedFactor > 0) {
+                bgSizeXFactor = parsedFactor;
+            }
+        }
+        console.log("Using background-size-x factor:", bgSizeXFactor);
+    } catch (e) {
+        console.warn("Could not compute ::before styles for background-size, defaulting to 2.5. Error:", e);
+    }
 
+
+    function handleOrientation(event) {
         let { beta, gamma, alpha } = event;
 
         if (beta === null || gamma === null) {
-            // console.warn("Device orientation data not available or incomplete.");
             if (alphaValSpan) alphaValSpan.textContent = 'N/A';
             if (betaValSpan) betaValSpan.textContent = 'N/A';
             if (gammaValSpan) gammaValSpan.textContent = 'N/A';
@@ -30,45 +44,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if (betaValSpan) betaValSpan.textContent = beta.toFixed(1);
         if (gammaValSpan) gammaValSpan.textContent = gamma.toFixed(1);
 
+        // --- Map GAMMA (left/right tilt) to where shine should appear on button ---
+        const gammaRange = 90; // Effective range: -45 to +45 degrees
+        // targetShineXPercent: 0% (shine on button left) to 100% (shine on button right)
+        let targetShineXPercent = (Math.max(-gammaRange / 2, Math.min(gammaRange / 2, gamma)) + (gammaRange / 2)) / gammaRange * 100;
 
-        // --- Map tilt values to shine position (0% to 100%) ---
+        // --- Calculate CSS background-position-x ---
+        // s: target shine position on button, normalized (0 to 1)
+        const s = targetShineXPercent / 100;
+        // shine_center_in_gradient: typically 0.5 (50%) if shine is in middle of gradient definition
+        const shineCenterInGradient = 0.5;
 
-        // GAMMA (left/right tilt) for X-axis:
-        // Gamma range: -90 (left) to +90 (right)
-        // We'll map a smaller, more sensitive range, e.g., -45 to 45 degrees
-        const gammaRange = 90; // Effective range: -45 to +45
-        let shineX = (Math.max(-gammaRange / 2, Math.min(gammaRange / 2, gamma)) + (gammaRange / 2)) / gammaRange * 100;
-        // shineX will be 0% when gamma is -45 (or less), 100% when gamma is +45 (or more)
-
-        // BETA (front/back tilt) for Y-axis:
-        // Beta range: e.g., -90 (top towards you) to +90 (bottom towards you)
-        // Or on some devices, 0 (flat) to 180 (upside down), or -180 to 180
-        // Let's assume a usable range like gamma for simplicity and sensitivity.
-        const betaRange = 90; // Effective range: -45 to +45
-        let shineY = (Math.max(-betaRange / 2, Math.min(betaRange / 2, beta)) + (betaRange / 2)) / betaRange * 100;
-        // shineY will be 0% when beta is -45 (or less), 100% when beta is +45 (or more)
+        let cssBgPosXPercent;
+        if (bgSizeXFactor === 1) { // If background is same size as button
+             cssBgPosXPercent = s * 100; // Direct mapping, though shine won't move
+        } else {
+            // Formula: css_val = (s - shine_center_in_gradient * bg_factor) / (1 - bg_factor)
+            cssBgPosXPercent = ((s - shineCenterInGradient * bgSizeXFactor) / (1 - bgSizeXFactor)) * 100;
+        }
         
-        // Optional: Invert Y if the natural tilt feels opposite to the shine movement
-        // shineY = 100 - shineY;
+        // Ensure cssBgPosXPercent stays within reasonable bounds (e.g. 0-100 or what's visually good)
+        // For typical sweeping effects, it might go outside 0-100, but the formula handles it.
+        // Clamp it just in case of extreme bgSizeXFactor values to avoid huge numbers.
+        cssBgPosXPercent = Math.max(-200, Math.min(200, cssBgPosXPercent));
 
 
-        button.style.setProperty('--shine-x', `${shineX.toFixed(2)}%`);
-        button.style.setProperty('--shine-y', `${shineY.toFixed(2)}%`);
+        button.style.setProperty('--shine-bg-pos-x', `${cssBgPosXPercent.toFixed(2)}%`);
 
-        if (shineXValSpan) shineXValSpan.textContent = shineX.toFixed(1) + '%';
-        if (shineYValSpan) shineYValSpan.textContent = shineY.toFixed(1) + '%';
+        if (targetShineXValSpan) targetShineXValSpan.textContent = targetShineXPercent.toFixed(1) + '%';
+        if (cssBgPosXValSpan) cssBgPosXValSpan.textContent = cssBgPosXPercent.toFixed(1) + '%';
     }
 
     // --- Permission Handling for iOS 13+ ---
     if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // This is likely an iOS 13+ device
-        button.addEventListener('click', () => { // Request permission on a user gesture
+        button.addEventListener('click', () => {
             DeviceOrientationEvent.requestPermission()
                 .then(permissionState => {
                     if (permissionState === 'granted') {
                         window.addEventListener('deviceorientation', handleOrientation);
-                        // Optional: Remove the click listener after permission granted if it was just for this
-                        // button.onclick = null; // Or use removeEventListener
                         console.log("Device orientation permission granted.");
                     } else {
                         console.warn('Device orientation permission not granted.');
@@ -79,11 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("Error requesting device orientation permission:", error);
                     alert('Could not request device orientation permission.');
                 });
-        }, { once: true }); // Only try to request permission once on click
+        }, { once: true });
         alert("Please click the button once to enable device orientation for the shiny effect (iOS).");
-
     } else if ('DeviceOrientationEvent' in window) {
-        // For non-iOS 13+ browsers that support it directly
         window.addEventListener('deviceorientation', handleOrientation);
         console.log("Device orientation supported directly.");
     } else {

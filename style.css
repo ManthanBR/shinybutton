@@ -8,7 +8,7 @@ body {
     background-color: #222;
     font-family: Arial, sans-serif;
     color: #eee;
-    overflow: hidden; /* Prevent scrollbars if button is near edge during intense tilt */
+    overflow: hidden;
 }
 
 .shiny-button {
@@ -20,14 +20,14 @@ body {
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    position: relative; /* Crucial for ::before positioning */
-    overflow: hidden;   /* Crucial to clip the shine */
+    position: relative;
+    overflow: hidden;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    transition: transform 0.1s ease-out; /* For a subtle press effect */
+    transition: transform 0.1s ease-out;
 
-    /* CSS variables for shine position, default to center */
-    --shine-x: 50%;
-    --shine-y: 50%;
+    /* CSS variable for X position of shine's background, default to center */
+    /* This will be the value for background-position-x directly */
+    --shine-bg-pos-x: 50%;
 }
 
 .shiny-button:active {
@@ -42,32 +42,32 @@ body {
     width: 100%;
     height: 100%;
 
-    /* The shine effect: a radial gradient works well */
-    background-image: radial-gradient(
-        circle at var(--shine-x) var(--shine-y),
-        rgba(255, 255, 255, 0.6) 0%,       /* Brightest part of shine */
-        rgba(255, 255, 255, 0.3) 20%,      /* Mid shine */
-        rgba(255, 255, 255, 0.0) 60%       /* Fading out */
-    );
-
-    /* Alternatively, a linear gradient for a "glint" effect */
-    /*
+    /* HORIZONTAL SHINE / GLINT */
     background-image: linear-gradient(
-        110deg,
+        90deg, /* Gradient direction: left to right */
         transparent 30%,
-        rgba(255, 255, 255, 0.5) 48%,
-        rgba(255, 255, 255, 0.5) 52%,
+        rgba(255, 255, 255, 0.15) 40%,
+        rgba(255, 255, 255, 0.5) 48%, /* Brighter part of shine */
+        rgba(255, 255, 255, 0.6) 50%, /* Center of shine */
+        rgba(255, 255, 255, 0.5) 52%, /* Brighter part of shine */
+        rgba(255, 255, 255, 0.15) 60%,
         transparent 70%
     );
-    background-size: 250% 250%; // Make gradient larger than button
-    background-position: var(--shine-x) var(--shine-y);
+    background-size: 250% 100%; /* Make gradient wider than button (e.g., 200%-300%) */
+                                /* This allows the shine (at 50% of gradient) to move across */
+
+    /*
+      --shine-bg-pos-x is set by JS.
+      If it's 0%, the gradient's 0% point is at button's 0% point. Shine appears on right.
+      If it's 100%, the gradient's 100% point is at button's 100% point. Shine appears on left.
+      The vertical position is fixed at 50% (center).
     */
+    background-position: var(--shine-bg-pos-x) 50%;
 
-
-    opacity: 0.8; /* Adjust opacity of the shine */
-    transition: background-position 0.05s linear, opacity 0.2s; /* Smooth but responsive */
-    pointer-events: none; /* So it doesn't interfere with button clicks */
-    mix-blend-mode: screen; /* Try 'overlay', 'soft-light', or 'color-dodge' for different looks */
+    opacity: 0.9; /* Adjust opacity of the shine */
+    transition: background-position 0.05s linear, opacity 0.2s;
+    pointer-events: none;
+    mix-blend-mode: screen; /* screen, overlay, or color-dodge often look good */
 }
 
 .debug-info {
