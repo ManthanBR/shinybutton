@@ -20,7 +20,7 @@ body {
     padding: 22px 50px;
     font-size: 28px;
     font-weight: 600;
-    color: white; /* Main text color */
+    color: white;
     background-color: #28282D;
     border: none;
     border-radius: 15px;
@@ -40,11 +40,10 @@ body {
     transform-style: preserve-3d;
     transform: rotateX(var(--button-rotate-x)) rotateY(var(--button-rotate-y));
     transition: transform 0.05s linear, box-shadow 0.2s;
-    z-index: 1; /* Ensures button content (like text) is above ::after */
+    z-index: 1;
 
-    /* Enhanced Text Shadow for better visibility */
-    text-shadow: 0 1px 1px rgba(0,0,0,0.5), /* Darker, sharper shadow */
-                 0 0 15px hsla(300, 90%, 75%, 0.6); /* Softer holographic glow */
+    text-shadow: 0 1px 1px rgba(0,0,0,0.5),
+                 0 0 15px hsla(300, 90%, 75%, 0.6);
 }
 
 .shiny-button:active {
@@ -72,27 +71,29 @@ body {
     border-radius: var(--button-border-radius);
     background-image: linear-gradient(
         135deg,
-        /* Color band 1: Purple to Pink with Subtler White Highlight */
-        hsla(280, 70%, 60%, 0.3) 5%,
-        hsla(300, 80%, 65%, 0.5) 15%,
-        hsla(310, 90%, 80%, 0.6) 21%, /* Light Pink transition to highlight */
-        hsla(0, 0%, 100%, 0.55) 23%,  /* **REDUCED OPACITY & NARROWER White Highlight peak** */
-        hsla(310, 90%, 80%, 0.6) 25%, /* Light Pink transition from highlight */
-        hsla(320, 80%, 65%, 0.5) 35%,
-        hsla(340, 70%, 60%, 0.3) 45%,
+        /* Color band 1: Purple to Pink with SHARP, NARROW White Highlight */
+        hsla(280, 70%, 60%, 0.35) 5%,  /* Base purple, slightly more opaque */
+        hsla(300, 80%, 65%, 0.55) 15%, /* Main Pink/Purple */
+        hsla(310, 90%, 85%, 0.7) 22.6%,/* Brighter, very light pink leading to highlight */
+        hsla(0, 0%, 100%, 0.9) 22.9%,  /* **SHARP, BRIGHT White Highlight START (high opacity)** */
+        hsla(0, 0%, 100%, 0.9) 23.1%,  /* **SHARP, BRIGHT White Highlight END (very narrow band: 0.2%)** */
+        hsla(310, 90%, 85%, 0.7) 23.4%,/* Brighter, very light pink leading away from highlight */
+        hsla(320, 80%, 65%, 0.55) 35%, /* Main Pink */
+        hsla(340, 70%, 60%, 0.35) 45%, /* Base pinkish-red */
 
-        /* Color band 2: Indigo to Magenta with Subtler White Highlight */
-        hsla(260, 70%, 60%, 0.3) 55%,
-        hsla(270, 80%, 65%, 0.5) 65%,
-        hsla(280, 90%, 80%, 0.6) 71%, /* Light Purple transition to highlight */
-        hsla(0, 0%, 100%, 0.55) 73%,  /* **REDUCED OPACITY & NARROWER White Highlight peak** */
-        hsla(280, 90%, 80%, 0.6) 75%, /* Light Purple transition from highlight */
-        hsla(290, 80%, 65%, 0.5) 85%,
-        hsla(300, 70%, 60%, 0.3) 95%
+        /* Color band 2: Indigo to Magenta with SHARP, NARROW White Highlight */
+        hsla(260, 70%, 60%, 0.35) 55%,
+        hsla(270, 80%, 65%, 0.55) 65%,
+        hsla(280, 90%, 85%, 0.7) 72.6%,
+        hsla(0, 0%, 100%, 0.9) 72.9%,  /* **SHARP, BRIGHT White Highlight START** */
+        hsla(0, 0%, 100%, 0.9) 73.1%,  /* **SHARP, BRIGHT White Highlight END (very narrow band: 0.2%)** */
+        hsla(280, 90%, 85%, 0.7) 73.4%,
+        hsla(290, 80%, 65%, 0.55) 85%,
+        hsla(300, 70%, 60%, 0.35) 95%
     );
-    opacity: 0.7; /* Can reduce this slightly if needed, e.g., 0.65 */
+    opacity: 0.75; /* Slight increase in overall shine opacity if needed, or keep at 0.7 */
     mix-blend-mode: color-dodge;
-    z-index: 1; /* This ensures ::before is on top of the button's bg, but text needs its own context or higher z-index */
+    z-index: 1;
 }
 
 /* SHINY BORDER (::after) */
@@ -104,16 +105,15 @@ body {
     border-radius: calc(var(--button-border-radius) + var(--border-thickness));
     background-image: linear-gradient(
         135deg,
-        hsl(290, 100%, 60%) 0%,
-        hsl(320, 100%, 65%) 20%,
-        /* Subtler white highlight for border */
-        hsla(0, 0%, 100%, 0.7) 49%,  /* **REDUCED OPACITY White Highlight Start** */
-        hsla(0, 0%, 100%, 0.7) 51%,  /* **REDUCED OPACITY White Highlight End** (sharper but less intense) */
-        hsl(270, 100%, 60%) 80%,
-        hsl(290, 100%, 60%) 100%
+        hsl(290, 100%, 60%) 0%,    /* Vivid Purple */
+        hsl(320, 100%, 65%) 20%,   /* Hot Pink */
+        hsl(0, 0%, 100%) 49.8%,    /* **FULLY OPAQUE, NARROW White Highlight START** */
+        hsl(0, 0%, 100%) 50.2%,    /* **FULLY OPAQUE, NARROW White Highlight END (0.4% band)** */
+        hsl(270, 100%, 60%) 80%,   /* Indigo/Violet */
+        hsl(290, 100%, 60%) 100%   /* Loop Purple */
     );
     opacity: 1;
-    z-index: -1; /* Behind the button's main background */
+    z-index: -1;
 }
 
 .debug-info {
