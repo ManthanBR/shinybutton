@@ -5,16 +5,15 @@ body {
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #1c1c1e; /* Darker, slightly cool background */
+    background-color: #1c1c1e;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #f0f0f0;
     overflow: hidden;
-    perspective: 1000px; /* Essential for 3D transform on children */
+    perspective: 1000px;
 }
 
 .button-container {
-    /* This container can also have perspective if needed,
-       but body having it is often enough for a single element. */
+    /* Optional: For grouping or further perspective adjustments */
 }
 
 .shiny-button {
@@ -22,15 +21,14 @@ body {
     font-size: 28px;
     font-weight: 600;
     color: white;
-    /* Opaque button background is KEY for the ::after border to work */
-    background-color: #28282D; /* Base color of the button, can be dark */
+    background-color: #28282D; /* Dark base for good contrast with shine */
     border: none;
-    border-radius: 15px;
+    border-radius: 15px; /* Stored in --button-border-radius */
     cursor: pointer;
-    position: relative; /* For pseudo-elements and z-indexing */
-    overflow: visible; /* Allow box-shadow to be fully visible, ::before/::after will be clipped by their own radius */
+    position: relative;
+    overflow: visible; /* For box-shadow visibility */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4),
-                0 0 0px 2px rgba(0,0,0,0.1); /* Subtle edge */
+                0 0 0px 2px rgba(0,0,0,0.1);
 
     /* CSS variables for dynamic control */
     --shine-bg-pos-x: 50%;
@@ -38,13 +36,13 @@ body {
     --button-rotate-x: 0deg;
     --button-rotate-y: 0deg;
     --border-thickness: 4px;
-    --button-border-radius: 15px; /* Match button's border-radius */
+    --button-border-radius: 15px;
 
-    transform-style: preserve-3d; /* Allows children to be transformed in 3D space */
+    transform-style: preserve-3d;
     transform: rotateX(var(--button-rotate-x)) rotateY(var(--button-rotate-y));
     transition: transform 0.05s linear, box-shadow 0.2s;
-    z-index: 1; /* Ensure button content is above the ::after border */
-    text-shadow: 0 0 10px rgba(255,200,255,0.3);
+    z-index: 1;
+    text-shadow: 0 0 10px hsla(300, 100%, 85%, 0.5); /* Pinkish glow for text */
 }
 
 .shiny-button:active {
@@ -59,7 +57,7 @@ body {
     position: absolute;
     pointer-events: none;
     transition: background-position 0.05s linear, opacity 0.2s;
-    background-size: 350% 350%; /* Larger for 2D movement */
+    background-size: 350% 350%; /* Larger for 2D movement, allows highlights to sweep */
     background-position: var(--shine-bg-pos-x) var(--shine-bg-pos-y);
 }
 
@@ -69,19 +67,30 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    border-radius: var(--button-border-radius); /* Match button */
+    border-radius: var(--button-border-radius);
     background-image: linear-gradient(
-        135deg, /* Diagonal gradient looks more dynamic */
-        hsla(280, 80%, 70%, 0.4), /* Purple */
-        hsla(320, 85%, 75%, 0.5), /* Pink */
-        hsla(0, 80%, 75%, 0.4),   /* Soft Red/Pink */
-        hsla(260, 90%, 70%, 0.5), /* Indigo */
-        hsla(300, 85%, 70%, 0.6), /* Magenta */
-        hsla(280, 80%, 70%, 0.4)  /* Loop Purple */
+        135deg,
+        /* Color band 1: Purple to Pink with White Highlight */
+        hsla(280, 70%, 60%, 0.2) 5%,  /* Softer start */
+        hsla(300, 80%, 65%, 0.6) 15%, /* Main Pink/Purple */
+        hsla(310, 100%, 95%, 0.8) 20%,/* Bright Highlight Start (very light pink) */
+        hsla(0, 0%, 100%, 0.9) 22.5%, /* Peak White Highlight */
+        hsla(310, 100%, 95%, 0.8) 25%,/* Bright Highlight End */
+        hsla(320, 80%, 65%, 0.6) 35%, /* Main Pink */
+        hsla(340, 70%, 60%, 0.2) 45%, /* Softer end of this band */
+
+        /* Color band 2: Indigo to Magenta with White Highlight */
+        hsla(260, 70%, 60%, 0.2) 55%, /* Softer start */
+        hsla(270, 80%, 65%, 0.6) 65%, /* Main Indigo/Purple */
+        hsla(280, 100%, 95%, 0.8) 70%,/* Bright Highlight Start (very light purple) */
+        hsla(0, 0%, 100%, 0.9) 72.5%, /* Peak White Highlight */
+        hsla(280, 100%, 95%, 0.8) 75%,/* Bright Highlight End */
+        hsla(290, 80%, 65%, 0.6) 85%, /* Main Magenta */
+        hsla(300, 70%, 60%, 0.2) 95%  /* Softer end */
     );
-    opacity: 0.7;
-    mix-blend-mode: color-dodge; /* screen, overlay, color-dodge, lighten */
-    z-index: 1; /* Above button's bg, below text (if button text has higher z-index) */
+    opacity: 0.8; /* Slightly increased opacity for brighter overall shine */
+    mix-blend-mode: color-dodge; /* This mode makes light colors very bright */
+    z-index: 1;
 }
 
 /* SHINY BORDER (::after) */
@@ -90,20 +99,19 @@ body {
     left: calc(var(--border-thickness) * -1);
     width: calc(100% + var(--border-thickness) * 2);
     height: calc(100% + var(--border-thickness) * 2);
-    /* Outer radius must accommodate the border thickness */
     border-radius: calc(var(--button-border-radius) + var(--border-thickness));
-
     background-image: linear-gradient(
         135deg,
-        hsl(290, 100%, 60%), /* Vivid Purple */
-        hsl(330, 100%, 65%), /* Hot Pink */
-        hsl(270, 100%, 65%), /* Indigo/Violet */
-        hsl(310, 100%, 60%), /* Deep Magenta */
-        hsl(290, 100%, 60%)  /* Loop Purple */
+        hsl(290, 100%, 60%) 0%,    /* Vivid Purple */
+        hsl(320, 100%, 65%) 20%,   /* Hot Pink */
+        hsl(0, 0%, 100%) 48%,      /* White Highlight Start */
+        hsl(0, 0%, 100%) 52%,      /* White Highlight End (creates a sharp band) */
+        hsl(270, 100%, 60%) 80%,   /* Indigo/Violet */
+        hsl(290, 100%, 60%) 100%   /* Loop Purple */
     );
-    opacity: 1;
-    z-index: -1; /* CRUCIAL: Behind the button's main background */
-                  /* The button's `background-color` will cover the center of this ::after */
+    opacity: 1; /* Border shine is fully opaque */
+    z-index: -1; /* Behind the button's main background */
+    /* No mix-blend-mode needed here as it's a solid color shine */
 }
 
 .debug-info {
