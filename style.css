@@ -13,24 +13,23 @@ body {
 }
 
 .button-container {
-    /* Optional: For grouping or further perspective adjustments */
+    /* Optional */
 }
 
 .shiny-button {
     padding: 22px 50px;
     font-size: 28px;
     font-weight: 600;
-    color: white;
-    background-color: #28282D; /* Dark base for good contrast with shine */
+    color: white; /* Main text color */
+    background-color: #28282D;
     border: none;
-    border-radius: 15px; /* Stored in --button-border-radius */
+    border-radius: 15px;
     cursor: pointer;
     position: relative;
-    overflow: visible; /* For box-shadow visibility */
+    overflow: visible;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4),
                 0 0 0px 2px rgba(0,0,0,0.1);
 
-    /* CSS variables for dynamic control */
     --shine-bg-pos-x: 50%;
     --shine-bg-pos-y: 50%;
     --button-rotate-x: 0deg;
@@ -41,8 +40,11 @@ body {
     transform-style: preserve-3d;
     transform: rotateX(var(--button-rotate-x)) rotateY(var(--button-rotate-y));
     transition: transform 0.05s linear, box-shadow 0.2s;
-    z-index: 1;
-    text-shadow: 0 0 10px hsla(300, 100%, 85%, 0.5); /* Pinkish glow for text */
+    z-index: 1; /* Ensures button content (like text) is above ::after */
+
+    /* Enhanced Text Shadow for better visibility */
+    text-shadow: 0 1px 1px rgba(0,0,0,0.5), /* Darker, sharper shadow */
+                 0 0 15px hsla(300, 90%, 75%, 0.6); /* Softer holographic glow */
 }
 
 .shiny-button:active {
@@ -57,7 +59,7 @@ body {
     position: absolute;
     pointer-events: none;
     transition: background-position 0.05s linear, opacity 0.2s;
-    background-size: 350% 350%; /* Larger for 2D movement, allows highlights to sweep */
+    background-size: 350% 350%;
     background-position: var(--shine-bg-pos-x) var(--shine-bg-pos-y);
 }
 
@@ -70,27 +72,27 @@ body {
     border-radius: var(--button-border-radius);
     background-image: linear-gradient(
         135deg,
-        /* Color band 1: Purple to Pink with White Highlight */
-        hsla(280, 70%, 60%, 0.2) 5%,  /* Softer start */
-        hsla(300, 80%, 65%, 0.6) 15%, /* Main Pink/Purple */
-        hsla(310, 100%, 95%, 0.8) 20%,/* Bright Highlight Start (very light pink) */
-        hsla(0, 0%, 100%, 0.9) 22.5%, /* Peak White Highlight */
-        hsla(310, 100%, 95%, 0.8) 25%,/* Bright Highlight End */
-        hsla(320, 80%, 65%, 0.6) 35%, /* Main Pink */
-        hsla(340, 70%, 60%, 0.2) 45%, /* Softer end of this band */
+        /* Color band 1: Purple to Pink with Subtler White Highlight */
+        hsla(280, 70%, 60%, 0.3) 5%,
+        hsla(300, 80%, 65%, 0.5) 15%,
+        hsla(310, 90%, 80%, 0.6) 21%, /* Light Pink transition to highlight */
+        hsla(0, 0%, 100%, 0.55) 23%,  /* **REDUCED OPACITY & NARROWER White Highlight peak** */
+        hsla(310, 90%, 80%, 0.6) 25%, /* Light Pink transition from highlight */
+        hsla(320, 80%, 65%, 0.5) 35%,
+        hsla(340, 70%, 60%, 0.3) 45%,
 
-        /* Color band 2: Indigo to Magenta with White Highlight */
-        hsla(260, 70%, 60%, 0.2) 55%, /* Softer start */
-        hsla(270, 80%, 65%, 0.6) 65%, /* Main Indigo/Purple */
-        hsla(280, 100%, 95%, 0.8) 70%,/* Bright Highlight Start (very light purple) */
-        hsla(0, 0%, 100%, 0.9) 72.5%, /* Peak White Highlight */
-        hsla(280, 100%, 95%, 0.8) 75%,/* Bright Highlight End */
-        hsla(290, 80%, 65%, 0.6) 85%, /* Main Magenta */
-        hsla(300, 70%, 60%, 0.2) 95%  /* Softer end */
+        /* Color band 2: Indigo to Magenta with Subtler White Highlight */
+        hsla(260, 70%, 60%, 0.3) 55%,
+        hsla(270, 80%, 65%, 0.5) 65%,
+        hsla(280, 90%, 80%, 0.6) 71%, /* Light Purple transition to highlight */
+        hsla(0, 0%, 100%, 0.55) 73%,  /* **REDUCED OPACITY & NARROWER White Highlight peak** */
+        hsla(280, 90%, 80%, 0.6) 75%, /* Light Purple transition from highlight */
+        hsla(290, 80%, 65%, 0.5) 85%,
+        hsla(300, 70%, 60%, 0.3) 95%
     );
-    opacity: 0.8; /* Slightly increased opacity for brighter overall shine */
-    mix-blend-mode: color-dodge; /* This mode makes light colors very bright */
-    z-index: 1;
+    opacity: 0.7; /* Can reduce this slightly if needed, e.g., 0.65 */
+    mix-blend-mode: color-dodge;
+    z-index: 1; /* This ensures ::before is on top of the button's bg, but text needs its own context or higher z-index */
 }
 
 /* SHINY BORDER (::after) */
@@ -102,16 +104,16 @@ body {
     border-radius: calc(var(--button-border-radius) + var(--border-thickness));
     background-image: linear-gradient(
         135deg,
-        hsl(290, 100%, 60%) 0%,    /* Vivid Purple */
-        hsl(320, 100%, 65%) 20%,   /* Hot Pink */
-        hsl(0, 0%, 100%) 48%,      /* White Highlight Start */
-        hsl(0, 0%, 100%) 52%,      /* White Highlight End (creates a sharp band) */
-        hsl(270, 100%, 60%) 80%,   /* Indigo/Violet */
-        hsl(290, 100%, 60%) 100%   /* Loop Purple */
+        hsl(290, 100%, 60%) 0%,
+        hsl(320, 100%, 65%) 20%,
+        /* Subtler white highlight for border */
+        hsla(0, 0%, 100%, 0.7) 49%,  /* **REDUCED OPACITY White Highlight Start** */
+        hsla(0, 0%, 100%, 0.7) 51%,  /* **REDUCED OPACITY White Highlight End** (sharper but less intense) */
+        hsl(270, 100%, 60%) 80%,
+        hsl(290, 100%, 60%) 100%
     );
-    opacity: 1; /* Border shine is fully opaque */
+    opacity: 1;
     z-index: -1; /* Behind the button's main background */
-    /* No mix-blend-mode needed here as it's a solid color shine */
 }
 
 .debug-info {
